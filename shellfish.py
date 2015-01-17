@@ -149,6 +149,17 @@ class Statement():
         self.stderr = other
         return self
 
+    def __or__(self, other):
+        """Only Statement objects are supported
+        Syntax:
+        self | other
+        """
+        return PipeStatement(self, other)
+
+    def __call__(self):
+        """abstract method"""
+        raise NotImplementedError()
+
 
 class Command(Statement):
 
@@ -167,37 +178,32 @@ class Command(Statement):
     def universal_newlines(self):
         return self._universal_newlines
 
-    def __or__(self, other):
-        """Only Cmd objects are supported
-        Syntax:
-        self | other
-        """
-        return PipedCmd(self, other)
+    @property
+    def subprocess(self):
+        return self._subprocess
 
     def _get_stmnt(self):
         stmnt = [self._cmd, ]
         stmnt.extend(self._arguments)
         for k, v in self._options.items():
             if len(k) > 1:
-                stmnt.append('-' + k)
-            else:
                 stmnt.append('--' + k)
+            else:
+                stmnt.append('-' + k)
             stmnt.append(v)
         return stmnt
 
     def __call__(self):
-        """Executes the command"""
+        """Executes the command and returns the subprocessi.Popen object"""
         stmnt = self._get_stmnt()
         sp_stdin = self._calc_sp_stdin()
         sp_stdout = self._calc_sp_stdout()
         sp_stderr = self._calc_sp_stderr()
         p = subprocess.Popen(
-            stmnt, stdin=sp_stdin, stdout=sp_stdout, stderr=sp_stderr, universal_newlines=self.universal_newlines)
+            stmnt, stdin=sp_stdin, stdout=sp_stdout, stderr=sp_stderr,
+            universal_newlines=self.universal_newlines)
         self._subprocess = p
-        stdout, stderr = p.communicate()
-        retcode = p.wait()
-        self.retcode = retcode
-        return retcode, stdout, stderr
+        return p
 
     def _calc_sp_stdin(self):
         """Maps our stdin values to valid subprocess argument"""
@@ -219,6 +225,27 @@ class Command(Statement):
         our_stderr = self.stderr
         sp_stderr = our_stderr
         return sp_stderr
+
+
+class PipeStatement(Statement):
+
+    def __init__(self, left, right):
+        super().__init__()
+        self.left = left
+        self.right = right
+
+    @Statement.stdin.setter
+    def stdin(self, value):
+        self.left.stdin = value
+
+    def __call__(self):
+        left = self.left
+        right = self.right
+
+        left.stdout = PIPE
+        lp = left()
+        right.stdin = lp.stdout
+        return right()
 
 
 class ModuleProxy(types.ModuleType):
@@ -262,7 +289,11 @@ class ModuleProxy(types.ModuleType):
 
     def __call__(self, stmnt):
         """executes a statement"""
-        return stmnt()
+        process = stmnt()
+        stdout, stderr = process.communicate()
+        retcode = process.wait()
+        self.retcode = retcode
+        return retcode, stdout, stderr
 
 if not __name__ == '__main__':
     # set proxy object in front of this module

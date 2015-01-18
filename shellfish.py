@@ -46,22 +46,10 @@ class Statement():
     """FIXME: add doc"""
 
     def __init__(self):
-        self._stdin = self.default_stdin()
-        self._stdout = self.default_stdout()
-        self._stderr = self.default_stderr()
-        self._universal_newlines = self.default_universal_newlines()
-
-    def default_stdin(self):
-        return None
-
-    def default_stdout(self):
-        return PIPE
-
-    def default_stderr(self):
-        return PIPE
-
-    def default_universal_newlines(self):
-        return True
+        self._stdin = None
+        self._stdout = PIPE
+        self._stderr = PIPE
+        self._universal_newlines = True
 
     @property
     def universal_newlines(self):

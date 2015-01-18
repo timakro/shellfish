@@ -7,7 +7,7 @@ import io
 
 
 def stmnt_cls_fctry(name, module):
-    """Create a Statement class of that name if a command in PATH
+    """Creates a Command class of that name if a command in PATH
     exists for that name.
     """
     try:
@@ -43,6 +43,8 @@ DEVNULL = subprocess.DEVNULL
 
 class Statement():
 
+    """FIXME: add doc"""
+
     def __init__(self):
         self._stdin = self.default_stdin()
         self._stdout = self.default_stdout()
@@ -65,8 +67,9 @@ class Statement():
 
     @stdin.setter
     def stdin(self, value):
-        """Supported:
+        """Stdin of the statement. Supported types for value are:
         * None -- no stdin redirection; default
+        * PIPE -- creates a pipe to the standard stream
         * "filename" -- retrieve stdin from filename given as str
         * fh -- retrieve stdin from file handle
         * DEVNULL -- retrieve stdin from file object os.devnull
@@ -84,8 +87,9 @@ class Statement():
 
     @stdout.setter
     def stdout(self, value, mode='w'):
-        """Supported:
-        None -- no redirection; default
+        """Stdout of the statement. Supported types for value are:
+        PIPE -- creates a pipe to the standard stream; default
+        None -- no redirection
         "filename" -- write stdout to file 
         filehandle -- write stdout to a file handle
         DEVNULL -- redirect stdout to file handle os.devnull
@@ -103,8 +107,9 @@ class Statement():
 
     @stderr.setter
     def stderr(self, value, mode='w'):
-        """Supported:
-        None -- no redirection; default
+        """Stderr of the statement. Supported types for value are:
+        PIPE -- creates a pipe to the standard stream; default
+        None -- no redirection
         "filename" -- write stderr to file 
         filehandle -- write stderr to a file handle
         DEVNULL -- redirect stderr to file handle os.devnull
@@ -124,44 +129,42 @@ class Statement():
     def retcode(self, value):
         self._retcode = value
 
-    def __call__(self, *args, **kwds):
-        """Abstract method to execute the statement"""
+    def __call__(self):
+        """abstract method to execute the statement"""
         raise NotImplementedError()
 
     def __lt__(self, other):
-        """Syntax:
+        """Sets the stdin of the statement. Syntax:
         self < other
         """
         self.stdin = other
         return self
 
     def __gt__(self, other):
-        """Syntax:
+        """Sets the stdout of the statement. Syntax:
         self > other
         """
         self.stdout = other
         return self
 
     def __ge__(self, other):
-        """Syntax:
+        """Sets the stderr of the statement. Syntax:
         self >= other
         """
         self.stderr = other
         return self
 
     def __or__(self, other):
-        """Only Statement objects are supported
-        Syntax:
+        """Pipes stdout of this statement to stdin of the other
+        statement. Only Statement objects are supported. Syntax:
         self | other
         """
         return PipeStatement(self, other)
 
-    def __call__(self):
-        """abstract method"""
-        raise NotImplementedError()
-
 
 class Command(Statement):
+
+    """FIXME: add doc"""
 
     def __init__(self, cmd, *args, **kwds):
         super().__init__()
@@ -183,6 +186,7 @@ class Command(Statement):
         return self._subprocess
 
     def _get_stmnt(self):
+        """create a list of command arguments and options"""
         stmnt = [self._cmd, ]
         stmnt.extend(self._arguments)
         for k, v in self._options.items():
@@ -194,7 +198,7 @@ class Command(Statement):
         return stmnt
 
     def __call__(self):
-        """Executes the command and returns the subprocessi.Popen object"""
+        """Executes the command and returns the subprocess.Popen object"""
         stmnt = self._get_stmnt()
         sp_stdin = self._calc_sp_stdin()
         sp_stdout = self._calc_sp_stdout()
@@ -206,21 +210,21 @@ class Command(Statement):
         return p
 
     def _calc_sp_stdin(self):
-        """Maps our stdin values to valid subprocess argument"""
+        """Maps our stdin values to a valid subprocess argument"""
         sp_stdin = None
         our_stdin = self.stdin
         sp_stdin = our_stdin
         return sp_stdin
 
     def _calc_sp_stdout(self):
-        """Maps our stdout value to valid subprocess argument"""
+        """Maps our stdout value to a valid subprocess argument"""
         sp_stdout = None
         our_stdout = self.stdout
         sp_stdout = our_stdout
         return sp_stdout
 
     def _calc_sp_stderr(self):
-        """Maps our stderr value to valid subprocess argument"""
+        """Maps our stderr value to a valid subprocess argument"""
         sp_stderr = None
         our_stderr = self.stderr
         sp_stderr = our_stderr
@@ -229,6 +233,8 @@ class Command(Statement):
 
 class PipeStatement(Statement):
 
+    """FIXME: add doc"""
+
     def __init__(self, left, right):
         super().__init__()
         self.left = left
@@ -236,7 +242,7 @@ class PipeStatement(Statement):
 
     @Statement.stdin.setter
     def stdin(self, value):
-        self.left.stdin = value
+        self._stdin = self.left.stdin = value
 
     def __call__(self):
         left = self.left
@@ -258,7 +264,8 @@ class ModuleProxy(types.ModuleType):
     def __init__(self, module, gst):
         """Arguments:
         module -- The module to be proxied.
-        gst    -- Global symbol table of the module where the proxy should be used.
+        gst    -- Global symbol table of the module where the proxy
+                  should be used.
         """
         super().__init__(module.__name__, doc=module.__doc__)
 

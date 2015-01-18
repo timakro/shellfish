@@ -49,7 +49,6 @@ class Statement():
         self._stdin = self.default_stdin()
         self._stdout = self.default_stdout()
         self._stderr = self.default_stderr()
-        self._retcode = None
 
     def default_stdin(self):
         return None
@@ -119,15 +118,6 @@ class Statement():
             self._stderr = open(value, mode)
         else:
             self._stderr = value
-
-    @property
-    def retcode(self):
-        """return code of the statement execution"""
-        return self._retcode
-
-    @retcode.setter
-    def retcode(self, value):
-        self._retcode = value
 
     def __call__(self):
         """abstract method to execute the statement"""

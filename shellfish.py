@@ -244,6 +244,14 @@ class PipeStatement(Statement):
     def stdin(self, value):
         self._stdin = self.left.stdin = value
 
+    @Statement.stdout.setter
+    def stdout(self, value):
+        self._stdout = self.right.stdout = value
+
+    @Statement.stderr.setter
+    def stderr(self, value):
+        self._stderr = self.right.stderr = value
+
     def __call__(self):
         left = self.left
         right = self.right

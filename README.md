@@ -18,3 +18,4 @@ _, stdout, _ = sh(pipe)
 # creates grep command object with search muster nobody and uses the file /etc/passwd as stdin
 # executes the grep command and save return code, stdout and stderr into vars
 ret, stdout, stderr = sh(sh.grep(e='nobody') < '/etc/passwd')
+```

@@ -49,6 +49,7 @@ class Statement():
         self._stdin = self.default_stdin()
         self._stdout = self.default_stdout()
         self._stderr = self.default_stderr()
+        self._universal_newlines = self.default_universal_newlines()
 
     def default_stdin(self):
         return None
@@ -58,6 +59,13 @@ class Statement():
 
     def default_stderr(self):
         return PIPE
+
+    def default_universal_newlines(self):
+        return True
+
+    @property
+    def universal_newlines(self):
+        return self._universal_newlines
 
     @property
     def stdin(self):
@@ -161,15 +169,7 @@ class Command(Statement):
         self._cmd = cmd
         self._arguments = args
         self._options = kwds
-        self._universal_newlines = self.default_universal_newlines()
         self._subprocess = None
-
-    def default_universal_newlines(self):
-        return True
-
-    @property
-    def universal_newlines(self):
-        return self._universal_newlines
 
     @property
     def subprocess(self):

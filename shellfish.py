@@ -48,7 +48,9 @@ class Statement():
     def __init__(self):
         self._stdin = None
         self._stdout = PIPE
+        self._stdout_mode = 'w'
         self._stderr = PIPE
+        self._stderr_mode = 'w'
         self._universal_newlines = True
 
     @property
@@ -81,7 +83,7 @@ class Statement():
         return self._stdout
 
     @stdout.setter
-    def stdout(self, value, mode='w'):
+    def stdout(self, value):
         """Stdout of the statement. Supported types for value are:
         PIPE -- creates a pipe to the standard stream; default
         None -- no redirection
@@ -91,9 +93,18 @@ class Statement():
         """
         if isinstance(value, str):
             # FIXME: think about how to close the file handle
-            self._stdout = open(value, mode)
+            self._stdout = open(value, self.stdout_mode)
         else:
             self._stdout = value
+
+    @property
+    def stdout_mode(self):
+        """write mode to stdout"""
+        return self._stdout_mode
+
+    @stdout.setter
+    def stdout_mode(self, mode):
+        self._stdout_mode = mode
 
     @property
     def stderr(self):
@@ -101,7 +112,7 @@ class Statement():
         return self._stderr
 
     @stderr.setter
-    def stderr(self, value, mode='w'):
+    def stderr(self, value):
         """Stderr of the statement. Supported types for value are:
         PIPE -- creates a pipe to the standard stream; default
         None -- no redirection
@@ -111,9 +122,18 @@ class Statement():
         """
         if isinstance(value, str):
             # FIXME: think about how to close the file handle
-            self._stderr = open(value, mode)
+            self._stderr = open(value, self.stderr_mode)
         else:
             self._stderr = value
+
+    @property
+    def stderr_mode(self):
+        """write mode to stderr"""
+        return self._stderr_mode
+
+    @stderr.setter
+    def stderr_mode(self, mode):
+        self._stderr_mode = mode
 
     def __call__(self):
         """abstract method to execute the statement"""

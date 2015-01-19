@@ -173,10 +173,18 @@ class Statement():
         return self
 
     def __gt__(self, other):
-        """Sets the stdout of the statement. Syntax:
-        self > other
+        """Sets the stdout or stdout and stderr of the statement. Syntax:
+        self > stdout
+        self > (stdout, stderr)
         """
-        self.stdout = other
+        if isinstance(other, (tuple, list)):
+            count = len(other)
+            if count >= 1:
+                self.stdout = other[0]
+            if count >= 2:
+                self.stderr = other[1]
+        else:
+            self.stdout = other
         return self
 
     def __ge__(self, other):

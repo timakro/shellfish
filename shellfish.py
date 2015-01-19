@@ -57,13 +57,11 @@ class Statement():
     def universal_newlines(self):
         return self._universal_newlines
 
-    @property
-    def stdin(self):
+    def _get_stdin(self):
         """stdin of the statement"""
         return self._stdin
 
-    @stdin.setter
-    def stdin(self, value):
+    def _set_stdin(self, value):
         """Stdin of the statement. Supported types for value are:
         * None -- no stdin redirection; default
         * PIPE -- creates a pipe to the standard stream
@@ -77,13 +75,14 @@ class Statement():
         else:
             self._stdin = value
 
-    @property
-    def stdout(self):
+    stdin = property(fget=lambda self: self._get_stdin(),
+                     fset=lambda self, value: self._set_stdin(value))
+
+    def _get_stdout(self):
         """stdout of the statement"""
         return self._stdout
 
-    @stdout.setter
-    def stdout(self, value):
+    def _set_stdout(self, value):
         """Stdout of the statement. Supported types for value are:
         PIPE -- creates a pipe to the standard stream; default
         None -- no redirection
@@ -97,6 +96,9 @@ class Statement():
         else:
             self._stdout = value
 
+    stdout = property(fget=lambda self: self._get_stdout(),
+                      fset=lambda self, value: self._set_stdout(value))
+
     @property
     def stdout_mode(self):
         """write mode to stdout"""
@@ -106,13 +108,11 @@ class Statement():
     def stdout_mode(self, mode):
         self._stdout_mode = mode
 
-    @property
-    def stderr(self):
+    def _get_stderr(self):
         """stderr of the statement"""
         return self._stderr
 
-    @stderr.setter
-    def stderr(self, value):
+    def _set_stderr(self, value):
         """Stderr of the statement. Supported types for value are:
         PIPE -- creates a pipe to the standard stream; default
         None -- no redirection
@@ -125,6 +125,9 @@ class Statement():
             self._stderr = open(value, self.stderr_mode)
         else:
             self._stderr = value
+
+    stderr = property(fget=lambda self: self._get_stderr(),
+                      fset=lambda self, value: self._set_stderr(value))
 
     @property
     def stderr_mode(self):
@@ -238,17 +241,23 @@ class PipeStatement(Statement):
         self.left = left
         self.right = right
 
-    @Statement.stdin.setter
-    def stdin(self, value):
-        self._stdin = self.left.stdin = value
+    def _get_stdin(self):
+        return self.left.stdin
 
-    @Statement.stdout.setter
-    def stdout(self, value):
-        self._stdout = self.right.stdout = value
+    def _set_stdin(self, value):
+        self.left.stdin = value
 
-    @Statement.stderr.setter
-    def stderr(self, value):
-        self._stderr = self.right.stderr = value
+    def _get_stdout(self):
+        return self.right.stdout
+
+    def _set_stdout(self, value):
+        self.right.stdout = value
+
+    def _get_stderr(self):
+        return self.right.stderr
+
+    def _set_stderr(self, value):
+        self.right.stderr = value
 
     def __call__(self):
         left = self.left

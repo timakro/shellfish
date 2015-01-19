@@ -15,7 +15,10 @@ _, stdout, _ = sh(echo)
 pipe = sh.mount() | sh.column('-t')
 _, stdout, _ = sh(pipe)
 
-# creates grep command object with search muster nobody and uses the file /etc/passwd as stdin
-# executes the grep command and save return code, stdout and stderr into vars
-ret, stdout, stderr = sh(sh.grep(e='nobody') < '/etc/passwd')
+# now a more complex but mindless example
+# creates a cat command object and redirect stdout to stdin of the grep command object
+# stdin of the pipe statement comes from file /etc/passwd and the result of the pipe statement
+# is written to /tmp/nobody.
+pipe = (sh.cat('-') | sh.grep(e='nobody')) < '/etc/passwd' > '/tmp/nobody'
+ret, _, stderr = sh(pipe)
 ```

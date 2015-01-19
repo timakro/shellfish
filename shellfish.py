@@ -322,11 +322,6 @@ class ModuleProxy(types.ModuleType):
         except AttributeError:
             pass
 
-        # try:
-        #    return self.__dict__[name]
-        # except KeyError:
-        #    pass
-
         return stmnt_cls_fctry(name, self._module)
 
     def __call__(self, stmnt):

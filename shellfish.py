@@ -60,27 +60,31 @@ class Statement():
         }
         self._universal_newlines = universal_newlines
 
-    @property
-    def universal_newlines(self):
+    def _get_universal_newlines(self):
         return self._universal_newlines
 
-    @universal_newlines.setter
-    def universal_newlines(self, value):
+    def _set_universal_newlines(self, value):
         self._universal_newlines = bool(value)
+
+    universal_newlines = property(
+        fget=lambda self: self._get_universal_newlines())
 
     def _get_stdin(self):
         """stdin of the statement"""
         return self._stdin['value']
 
-    def _set_stdin(self, value):
+    def _set_stdin(self, value, heredoc=False):
         """Stdin of the statement. Supported types for value are:
         * None -- no stdin redirection; default
         * PIPE -- creates a pipe to the standard stream
-        * "filename" -- retrieve stdin from filename given as str
         * fh -- retrieve stdin from file handle
         * DEVNULL -- retrieve stdin from file object os.devnull
+        * "filename" -- retrieve stdin from filename given as str
+        If heredoc is True, then value is not identified as file name,
+        but the value is used as input.
         """
-        if isinstance(value, str):
+        self._stdin['heredoc'] = heredoc
+        if not heredoc and isinstance(value, str):
             # FIXME: think about how to close file after execution
             self._stdin['value'] = open(value)
         else:
@@ -88,14 +92,6 @@ class Statement():
 
     stdin = property(fget=lambda self: self._get_stdin(),
                      fset=lambda self, value: self._set_stdin(value))
-
-    @property
-    def stdin_heredoc(self):
-        return self._stdin['heredoc']
-
-    @stdin_heredoc.setter
-    def stdin_heredoc(self, value):
-        self._stdin['heredoc'] = bool(value)
 
     def _get_stdout(self):
         """stdout of the statement"""
@@ -168,6 +164,14 @@ class Statement():
         self.stdin = other
         return self
 
+    def __le__(self, other):
+        """Uses given string or bytes as stdin of the statement. Syntax:
+        self <= other
+        """
+        self._set_stdin(other, True)
+        self._set_universal_newlines(isinstance(other, str))
+        return self
+
     def __gt__(self, other):
         """Sets the stdout of the statement. Syntax:
         self > other
@@ -231,7 +235,11 @@ class Command(Statement):
 
     def _calc_sp_stdin(self):
         """Maps our stdin values to a valid subprocess argument"""
-        return self.stdin
+        if self._stdin['heredoc']:
+            stdin = PIPE
+        else:
+            stdin = self.stdin
+        return stdin
 
     def _calc_sp_stdout(self):
         """Maps our stdout value to a valid subprocess argument"""
@@ -324,7 +332,11 @@ class ModuleProxy(types.ModuleType):
     def __call__(self, stmnt):
         """executes a statement"""
         process = stmnt()
-        stdout, stderr = process.communicate()
+        if stmnt._stdin['heredoc']:
+            stdin = stmnt.stdin
+        else:
+            stdin = None
+        stdout, stderr = process.communicate(input=stdin)
         retcode = process.wait()
         self.retcode = retcode
         return retcode, stdout, stderr

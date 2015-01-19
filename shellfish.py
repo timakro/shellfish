@@ -45,21 +45,32 @@ class Statement():
 
     """FIXME: add doc"""
 
-    def __init__(self):
-        self._stdin = None
-        self._stdout = PIPE
-        self._stdout_mode = 'w'
-        self._stderr = PIPE
-        self._stderr_mode = 'w'
-        self._universal_newlines = True
+    def __init__(self, universal_newlines=False):
+        self._stdin = {
+            'value': None,
+            'heredoc': False
+        }
+        self._stdout = {
+            'value': PIPE,
+            'mode': 'w'
+        }
+        self._stderr = {
+            'value': PIPE,
+            'mode': 'w'
+        }
+        self._universal_newlines = universal_newlines
 
     @property
     def universal_newlines(self):
         return self._universal_newlines
 
+    @universal_newlines.setter
+    def universal_newlines(self, value):
+        self._universal_newlines = bool(value)
+
     def _get_stdin(self):
         """stdin of the statement"""
-        return self._stdin
+        return self._stdin['value']
 
     def _set_stdin(self, value):
         """Stdin of the statement. Supported types for value are:
@@ -71,16 +82,24 @@ class Statement():
         """
         if isinstance(value, str):
             # FIXME: think about how to close file after execution
-            self._stdin = open(value)
+            self._stdin['value'] = open(value)
         else:
-            self._stdin = value
+            self._stdin['value'] = value
 
     stdin = property(fget=lambda self: self._get_stdin(),
                      fset=lambda self, value: self._set_stdin(value))
 
+    @property
+    def stdin_heredoc(self):
+        return self._stdin['heredoc']
+
+    @stdin_heredoc.setter
+    def stdin_heredoc(self, value):
+        self._stdin['heredoc'] = bool(value)
+
     def _get_stdout(self):
         """stdout of the statement"""
-        return self._stdout
+        return self._stdout['value']
 
     def _set_stdout(self, value):
         """Stdout of the statement. Supported types for value are:
@@ -92,9 +111,9 @@ class Statement():
         """
         if isinstance(value, str):
             # FIXME: think about how to close the file handle
-            self._stdout = open(value, self.stdout_mode)
+            self._stdout['value'] = open(value, self.stdout_mode)
         else:
-            self._stdout = value
+            self._stdout['value'] = value
 
     stdout = property(fget=lambda self: self._get_stdout(),
                       fset=lambda self, value: self._set_stdout(value))
@@ -102,15 +121,15 @@ class Statement():
     @property
     def stdout_mode(self):
         """write mode to stdout"""
-        return self._stdout_mode
+        return self._stdout['mode']
 
     @stdout.setter
     def stdout_mode(self, mode):
-        self._stdout_mode = mode
+        self._stdout['mode'] = mode
 
     def _get_stderr(self):
         """stderr of the statement"""
-        return self._stderr
+        return self._stderr['value']
 
     def _set_stderr(self, value):
         """Stderr of the statement. Supported types for value are:
@@ -122,9 +141,9 @@ class Statement():
         """
         if isinstance(value, str):
             # FIXME: think about how to close the file handle
-            self._stderr = open(value, self.stderr_mode)
+            self._stderr['value'] = open(value, self.stderr_mode)
         else:
-            self._stderr = value
+            self._stderr['value'] = value
 
     stderr = property(fget=lambda self: self._get_stderr(),
                       fset=lambda self, value: self._set_stderr(value))
@@ -132,11 +151,11 @@ class Statement():
     @property
     def stderr_mode(self):
         """write mode to stderr"""
-        return self._stderr_mode
+        return self._stderr['mode']
 
     @stderr.setter
     def stderr_mode(self, mode):
-        self._stderr_mode = mode
+        self._stderr['mode'] = mode
 
     def __call__(self):
         """abstract method to execute the statement"""
@@ -212,24 +231,17 @@ class Command(Statement):
 
     def _calc_sp_stdin(self):
         """Maps our stdin values to a valid subprocess argument"""
-        sp_stdin = None
-        our_stdin = self.stdin
-        sp_stdin = our_stdin
-        return sp_stdin
+        return self.stdin
 
     def _calc_sp_stdout(self):
         """Maps our stdout value to a valid subprocess argument"""
-        sp_stdout = None
-        our_stdout = self.stdout
-        sp_stdout = our_stdout
-        return sp_stdout
+        # actually nothing to do
+        return self.stdout
 
     def _calc_sp_stderr(self):
         """Maps our stderr value to a valid subprocess argument"""
-        sp_stderr = None
-        our_stderr = self.stderr
-        sp_stderr = our_stderr
-        return sp_stderr
+        # actually nothing to do
+        return self.stderr
 
 
 class PipeStatement(Statement):

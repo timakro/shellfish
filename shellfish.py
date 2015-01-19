@@ -119,7 +119,7 @@ class Statement():
         """write mode to stdout"""
         return self._stdout['mode']
 
-    @stdout.setter
+    @stdout_mode.setter
     def stdout_mode(self, mode):
         self._stdout['mode'] = mode
 
@@ -149,7 +149,7 @@ class Statement():
         """write mode to stderr"""
         return self._stderr['mode']
 
-    @stderr.setter
+    @stderr_mode.setter
     def stderr_mode(self, mode):
         self._stderr['mode'] = mode
 

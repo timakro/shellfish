@@ -3,7 +3,7 @@ shellfish gives the python `subprocess` module a kind of shell syntax
 
 ## Usage
 
-### Command execution
+### Command Creation and Execution
 
 To execute a command, a class must be created for this command. In normal case this task will be taken over by the module at import time or on declaration. Therefor the command must be in your `PATH`. Than you can create an instance from that class with the appropriate arguments. Now let the module execute the command. You will get the return code, stdout and stderr. If you need the `subprocess.Popen` object to interact with, then call the command instance on your own.
 ```py

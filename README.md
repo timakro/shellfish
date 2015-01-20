@@ -27,6 +27,49 @@ stdout, stderr = subproc.communicate()
 ret = subproc.wait()
 ```
 
+### Redirection
+
+You can redirect the following types to a command stdin: a file handle or file object, a file name as string or a string or bytes as heredoc. Use `>` in front of a command or `<` after the command.
+```py
+import shellfish as sh
+
+# two different ways to redirect a file, providing the file name as string
+cmd = sh.cat('-') < '/tmp/shellfish.test'
+cmd = '/tmp/shellfish.test' > sh.cat('-')
+
+# same different ways to redirect a file object
+f = open('/tmp/shellfish.test', 'r')
+cmd = sh.cat('-') < f
+cmd = f > sh.cat('-')
+
+# redirect a string to stdin
+cmd = "my heredoc" >= sh.cat('-')
+cmd = sh.cat('-') <= "my shellfish test"
+# redirect bytes to stdin
+cmd = "my heredoc" >= sh.cat('-')
+cmd = sh.cat('-') <= "my shellfish test"
+```
+
+The same applies for stdout and stderr. Use `>` after the command to redirect stdout and `>=` to redirect stderr.
+```py
+import shellfish as sh
+
+# two different ways to redirect a file, providing the file name as string
+cmd = sh.echo('my shellfish test') > '/tmp/shellfish.test'
+cmd = sh.cat('/tmp/shellfish.test') >= '/tmp/shellfish2.test'
+
+# same different ways to redirect a file object
+f = open('/tmp/shellfish.test', 'r')
+cmd = sh.cat('-') < f
+cmd = f > sh.cat('-')
+```
+
+Now comes the tricky part,  combining the redirections. tbd
+```py
+# redirect stdout and stderr
+cmd = sh.cat('/tmp/shellfish.test') > ('/tmp/shellfish2.test', '/tmp/shellfish3.test')
+```
+
 ```py
 import shellfish as sh
 

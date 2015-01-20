@@ -285,6 +285,7 @@ class PipeStatement(Statement):
         return self.right.stderr
 
     def _set_stderr(self, value):
+        self.left.stderr = value
         self.right.stderr = value
 
     def __call__(self):

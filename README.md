@@ -64,6 +64,15 @@ cmd = sh.cat('-') < f
 cmd = f > sh.cat('-')
 ```
 
+If you want to redirect stderr to stdout, then use the shellfish constant `STDOUT`.
+```py
+import shellfish as sh
+from shellfish import STDOUT
+
+# redirect stderr to stdout
+cmd = sh.cat('/tmp/shellfish.test') >= STDOUT
+```
+
 Now comes the tricky part, combining the redirections. If you want to redirect stdin and stdout or stderr, then the command object must be in the middle. If you want to redirect stdout and stderr at the same time, then you have to group stdout and stderr as `list` or `tuple`. That is because the comparison operators have equal precedence and evaluation is done from left to right. That means `cmd < stdin > stdout` is evaluated in python like `cmd < stdin and stdin > stdout`. `stdin > stdout` will be `True` or `False`, but we expect to get the modified command object.
 ```py
 # redirect stdin and stdout

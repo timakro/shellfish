@@ -85,11 +85,13 @@ cmd = sh.cat('/tmp/shellfish.test') > ('/tmp/shellfish2.test', '/tmp/shellfish3.
 cmd = '/tmp/shellfish.test' > sh.cat('-') > ('/tmp/shellfish2.test', '/tmp/shellfish3.test')
 ```
 
+### Pipelines
+
+Like in shell a sequence of commands, where the stdout of a command is connected via a pipe to another command, is created with `|`. Also pipelines have stdin, stdout and stderr. If you set stdin of a pipeline, then the first commands stdin of the pipeline is set. If you set stdout, then the last commands stdout of the pipeline is set. If you set stderr, then all commands of the pipeline get the stderr set.
 ```py
 import shellfish as sh
 
-# creates mount command object and pipe stdout to stdin of column command object
-# executes the pipe statement and save stdout into var
+# redirect mount stdout to column stdin
 pipe = sh.mount() | sh.column('-t')
 _, stdout, _ = sh(pipe)
 
@@ -97,6 +99,5 @@ _, stdout, _ = sh(pipe)
 # creates a cat command object and redirect stdout to stdin of the grep command object
 # stdin of the pipe statement comes from file /etc/passwd and the result of the pipe statement
 # is written to /tmp/nobody.
-pipe = (sh.cat('-') | sh.grep(e='nobody')) < '/etc/passwd' > '/tmp/nobody'
-ret, _, stderr = sh(pipe)
+pipe = '/tmp/shellfish.test' > (sh.cat('-') | sh.grep(e='heredoc') | sh.wc('-l')) >= '/tmp/shellfish2.test'
 ```

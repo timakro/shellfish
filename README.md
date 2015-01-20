@@ -1,11 +1,11 @@
 # shellfish
-shellfish gives the subprocess module a little shell syntax
+shellfish gives the python `subprocess` module a kind of shell syntax
 
 ## Usage
 
 ### Command execution
 
-To execute the command, a class must be created for this command. In normal case this task will be taken over by the module at import time or on declaration. Therefor the command must be in your PATH. Than you can create an instance from that class with the appropriate arguments. Now let the module execute the command. You will get the return code, stdout and stderr. If you need the subprocess object to interact with, then call the command instance on your own.
+To execute a command, a class must be created for this command. In normal case this task will be taken over by the module at import time or on declaration. Therefor the command must be in your `PATH`. Than you can create an instance from that class with the appropriate arguments. Now let the module execute the command. You will get the return code, stdout and stderr. If you need the `subprocess.Popen` object to interact with, then call the command instance on your own.
 ```py
 # import shellfish module and shorten name
 import shellfish as sh
@@ -29,7 +29,7 @@ ret = subproc.wait()
 
 ### Redirection
 
-You can redirect the following types to a command stdin: a file handle or file object, a file name as string or a string or bytes as heredoc. Use `>` in front of a command or `<` after the command.
+You can redirect the following types to stdin: a file handle or file object, a file name as `str` or a `str` or `bytes` as heredoc. Use `>` in front of a command or `<` after the command.
 ```py
 import shellfish as sh
 
@@ -64,10 +64,16 @@ cmd = sh.cat('-') < f
 cmd = f > sh.cat('-')
 ```
 
-Now comes the tricky part,  combining the redirections. tbd
+Now comes the tricky part, combining the redirections. If you want to redirect stdin and stdout or stderr, then the command object must be in the middle. If you want to redirect stdout and stderr at the same time, then you have to group stdout and stderr as `list` or `tuple`. That is because the comparison operators have equal precedence and evaluation is done from left to right. That means `cmd < stdin > stdout` is evaluated in python like `cmd < stdin and stdin > stdout`. `stdin > stdout` will be `True` or `False`, but we expect to get the modified command object.
 ```py
+# redirect stdin and stdout
+cmd = '/tmp/shellfish.test' > sh.cat('-') > '/tmp/shellfish2.test'
+
 # redirect stdout and stderr
 cmd = sh.cat('/tmp/shellfish.test') > ('/tmp/shellfish2.test', '/tmp/shellfish3.test')
+
+# redirect stdin, stdout and stderr
+cmd = '/tmp/shellfish.test' > sh.cat('-') > ('/tmp/shellfish2.test', '/tmp/shellfish3.test')
 ```
 
 ```py

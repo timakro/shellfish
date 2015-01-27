@@ -46,8 +46,8 @@ cmd = f > sh.cat('-')
 cmd = "my heredoc" >= sh.cat('-')
 cmd = sh.cat('-') <= "my shellfish test"
 # redirect bytes to stdin
-cmd = "my heredoc" >= sh.cat('-')
-cmd = sh.cat('-') <= "my shellfish test"
+cmd = b"my heredoc" >= sh.cat('-')
+cmd = sh.cat('-') <= b"my shellfish test"
 ```
 
 The same applies for stdout and stderr. Use `>` after the command to redirect stdout and `>=` to redirect stderr.

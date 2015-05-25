@@ -38,10 +38,10 @@ class CommandNotFoundError(ShellfishError):
 
 PIPE = subprocess.PIPE
 STDOUT = subprocess.STDOUT
-DEVNULL = subprocess.DEVNULL
+DEVNULL = os.devnull
 
 
-class Statement():
+class Statement(object):
 
     """FIXME: add doc"""
 
@@ -207,7 +207,7 @@ class Command(Statement):
     """FIXME: add doc"""
 
     def __init__(self, cmd, *args, **kwds):
-        super().__init__()
+        super(Command, self).__init__()
         self._cmd = cmd
         self._arguments = args
         self._options = kwds
@@ -265,7 +265,7 @@ class PipeStatement(Statement):
     """FIXME: add doc"""
 
     def __init__(self, left, right):
-        super().__init__()
+        super(PipeStatement, self).__init__()
         self.left = left
         self.right = right
 
@@ -311,7 +311,7 @@ class ModuleProxy(types.ModuleType):
         gst    -- Global symbol table of the module where the proxy
                   should be used.
         """
-        super().__init__(module.__name__, doc=module.__doc__)
+        super(ModuleProxy, self).__init__(module.__name__, doc=module.__doc__)
 
         self._module = module
         self._gst = gst

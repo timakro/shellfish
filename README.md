@@ -25,6 +25,22 @@ ret, stdout, stderr = sh(echo_cmd)
 subproc = touch_cmd()
 stdout, stderr = subproc.communicate()
 ret = subproc.wait()
+
+# if you are only interested in the return code
+ret = sh.call(sh.touch('/tmp/shellfish.test'))
+
+# now the same statement, but shellfish raises an exception if the return code is not zero
+try:
+    ret = sh.check_call(sh.touch('/tmp/shellfish.test'))
+except sh.CalledProcessError:
+    pass
+
+# if you are only interested in the output and error conditions
+try:
+    stdout = sh.check_output(sh.echo('test') | sh.cat('-', '/tmp/shellfish.not_existing'))
+except sh.CalledProcessError as e:
+    print(e.returncode)
+    print(e.output)
 ```
 
 ### Redirection

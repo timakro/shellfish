@@ -36,6 +36,10 @@ class CommandNotFoundError(ShellfishError):
     pass
 
 
+class CalledProcessError(subprocess.CalledProcessError):
+    pass
+
+
 PIPE = subprocess.PIPE
 STDOUT = subprocess.STDOUT
 DEVNULL = os.devnull
@@ -259,6 +263,9 @@ class Command(Statement):
         # actually nothing to do
         return self.stderr
 
+    def __repr__(self):
+        return ' '.join(self._get_stmnt())
+
 
 class PipeStatement(Statement):
 
@@ -296,6 +303,9 @@ class PipeStatement(Statement):
         lp = left()
         right.stdin = lp.stdout
         return right()
+
+    def __repr__(self):
+        return '{} | {}'.format(repr(self.left), repr(self.right))
 
 
 class ModuleProxy(types.ModuleType):
@@ -344,6 +354,36 @@ class ModuleProxy(types.ModuleType):
         retcode = process.wait()
         self.retcode = retcode
         return retcode, stdout, stderr
+
+    def call(self, stmnt):
+        """Run the statement described by stmnt. Wait for command to complete,
+        then return the retcode attribute.
+        """
+        retcode, _, _ = self(stmnt)
+        return retcode
+
+    def check_call(self, stmnt):
+        """Run the statement described by stmnt. Wait for command to complete.
+        If the return code was zero then return, otherwise raise
+        CalledProcessError. The CalledProcessError object will have the return
+        code in the returncode attribute.
+        """
+        retcode = self.call(stmnt)
+        if retcode != 0:
+            raise CalledProcessError(retcode, repr(stmnt))
+        return retcode
+
+    def check_output(self, stmnt):
+        """Run command with arguments and return its output.
+        If the return code was non-zero it raises a CalledProcessError. The
+        CalledProcessError object will have the return code in the returncode
+        attribute and any output in the output attribute.
+        """
+        retcode, stdout, _ = self(stmnt)
+        if retcode != 0:
+            raise CalledProcessError(retcode, repr(stmnt), stdout)
+        return stdout
+
 
 if not __name__ == '__main__':
     # set proxy object in front of this module

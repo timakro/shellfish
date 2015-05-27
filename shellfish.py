@@ -216,6 +216,7 @@ class Command(Statement):
         self._arguments = args
         self._options = kwds
         self._subprocess = None
+        self._cwd = None
 
     @property
     def subprocess(self):
@@ -241,7 +242,7 @@ class Command(Statement):
         sp_stderr = self._calc_sp_stderr()
         p = subprocess.Popen(
             stmnt, stdin=sp_stdin, stdout=sp_stdout, stderr=sp_stderr,
-            universal_newlines=self.universal_newlines)
+            universal_newlines=self.universal_newlines, cwd=self._cwd)
         self._subprocess = p
         return p
 
@@ -263,8 +264,19 @@ class Command(Statement):
         # actually nothing to do
         return self.stderr
 
+    def cd(self, cwd):
+        """If cwd is not None, the function changes the working directory to
+        cwd before executing the child.
+        """
+        self._cwd = cwd
+        return self
+
     def __repr__(self):
-        return ' '.join(self._get_stmnt())
+        stmnt = ' '.join(self._get_stmnt())
+        if self._cwd is not None:
+            return "(cd '{}'; {})".format(self._cwd, stmnt)
+        else:
+            return stmnt
 
 
 class PipeStatement(Statement):

@@ -5,7 +5,7 @@ shellfish gives the python `subprocess` module a kind of shell syntax
 
 ### Command Creation and Execution
 
-To execute a command, a class must be created for this command. In normal case this task will be taken over by the module at import time or on declaration. Therefor the command must be in your `PATH`. Than you can create an instance from that class with the appropriate arguments. Now let the module execute the command. You will get the return code, stdout and stderr. If you need the `subprocess.Popen` object to interact with, then call the command instance on your own.
+To execute a command, a class must be created for this command. In normal case this task will be taken over by the module at import time or on declaration. Therefor the command must be in your `PATH`. Than you can create an instance from that class with the appropriate arguments. Now let the module execute the command. You will get the return code, stdout and stderr. If you need the `subprocess.Popen` object to interact with, then call the command instance on your own. You are also able to change the current working directory for each child process by using the 'cd()' method.
 ```py
 # import shellfish module and shorten name
 import shellfish as sh
@@ -41,11 +41,14 @@ try:
 except sh.CalledProcessError as e:
     print(e.returncode)
     print(e.output)
+
+# changing the working directory
+ret = sh.call(sh.touch('shellfish.test').cd('/tmp'))
 ```
 
 ### Redirection
 
-You can redirect the following types to stdin: a file handle or file object, a file name as `str` or a `str` or `bytes` as heredoc. Use `>` in front of a command or `<` after the command.
+You can redirect the following types to stdin: a file handle or file object, a file name as `str` or a `str` or `bytes` as heredoc. Use `>` in front of a command or `<` after the command. Be careful if you change the current working directory and are working with relative filenames in the redirections. Think of kind of subshell: `(cd /tmp; cat 'shellfish.test') > 'shellfish.test2'`. `cat` will search for `shellfish.test` in `/tmp`, but will write `shellfish.test2` to the current working directory of the parent process.
 ```py
 import shellfish as sh
 
@@ -103,7 +106,7 @@ cmd = '/tmp/shellfish.test' > sh.cat('-') > ('/tmp/shellfish2.test', '/tmp/shell
 
 ### Pipelines
 
-Like in shell a sequence of commands, where the stdout of a command is connected via a pipe to another command, is created with `|`. Also pipelines have stdin, stdout and stderr. If you set stdin of a pipeline, then the first commands stdin of the pipeline is set. If you set stdout, then the last commands stdout of the pipeline is set. If you set stderr, then all commands of the pipeline get the stderr set.
+Like in shell a sequence of commands, where the stdout of a command is connected via a pipe to another command, is created with `|`. Also pipelines have stdin, stdout and stderr. If you set stdin of a pipeline, then the first commands stdin of the pipeline is set. If you set stdout, then the last commands stdout of the pipeline is set. If you set stderr, then all commands of the pipeline get the stderr set. Changing the current working directory of pipelines is currently not supported.
 ```py
 import shellfish as sh
 

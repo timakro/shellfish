@@ -17,7 +17,11 @@ def stmnt_cls_fctry(name, module):
 
     for path in paths:
         cmd = os.path.join(path, name)
-        if os.path.exists(cmd) and os.access(path, os.X_OK):
+        if not os.path.exists(cmd):
+            error = CommandNotFoundError()
+        elif not os.access(cmd, os.X_OK):
+            error = CommandNotExecutableError()
+        else:
             def __init__(self, *args, **kwds):
                 Command.__init__(self, cmd, *args, **kwds)
 
@@ -25,7 +29,7 @@ def stmnt_cls_fctry(name, module):
             setattr(module, name, cls)
             return cls
 
-    return CommandNotFoundError()
+    raise error
 
 
 class ShellfishError(Exception):
@@ -33,6 +37,10 @@ class ShellfishError(Exception):
 
 
 class CommandNotFoundError(ShellfishError):
+    pass
+
+
+class CommandNotExecutableError(ShellfishError):
     pass
 
 
@@ -347,16 +355,10 @@ class ModuleProxy(types.ModuleType):
         if name == '__all__':
             raise ImportError("importing * isn't supported")
 
-        # check if the proxied module has an attribute with this name
-        try:
-            return getattr(self._module, name)
-        except AttributeError:
-            pass
-
         return stmnt_cls_fctry(name, self._module)
 
     def __call__(self, stmnt):
-        """executes a statement"""
+        """Executes a statement"""
         process = stmnt()
         if stmnt._stdin['heredoc']:
             stdin = stmnt.stdin
@@ -366,6 +368,16 @@ class ModuleProxy(types.ModuleType):
         retcode = process.wait()
         self.retcode = retcode
         return retcode, stdout, stderr
+
+    def custom_path(self, cmd, *args, **kwds):
+        """Creates a Command class of cmd if it exists"""
+        if not os.path.exists(cmd):
+            error = CommandNotFoundError()
+        elif not os.access(cmd, os.X_OK):
+            error = CommandNotExecutableError()
+        else:
+            return Command(cmd, *args, **kwds)
+        raise error
 
     def call(self, stmnt):
         """Run the statement described by stmnt. Wait for command to complete,

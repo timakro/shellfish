@@ -408,6 +408,12 @@ class ModuleProxy(types.ModuleType):
             raise CalledProcessError(retcode, repr(stmnt), stdout)
         return stdout
 
+    def env(self, var):
+        """Return environment variable var if exists else return None"""
+        if var[:1] == "$":
+          var = var[1:]
+        return os.environ.get(var)
+
 
 if not __name__ == '__main__':
     # set proxy object in front of this module
